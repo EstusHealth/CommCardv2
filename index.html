@@ -3,323 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CommCard Generate V2.1</title>
+    <title>Communication Card Generator V2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
-        /* Custom CSS for the card styling */
-        body {
-            font-family: 'Inter', sans-serif;
-        }
+        /* Custom CSS */
+        body { font-family: 'Inter', sans-serif; background-color: #f4f4f5; }
+        /* Card Preview Area - Variable Height */
         .card-preview-area {
-            width: 300px; height: 420px; border: 1px solid #ccc; border-radius: 15px;
-            background-color: #f0f0f0; position: relative; overflow: hidden;
-            margin: 20px auto; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            font-family: sans-serif; color: #000;
+            width: 300px;
+            height: auto; /* Allow height to adjust */
+            min-height: 420px; /* Keep a minimum height */
+            border: 1px solid #a1a1aa; border-radius: 12px;
+            background-color: #ffffff; position: relative; /* Needed for absolute children above text box */
+            padding-bottom: 10px; /* Minimal padding at the very bottom */
+            overflow: hidden;
+            margin: 20px auto;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); font-family: sans-serif; color: #18181b;
         }
-
-        /* Card Frame Colors */
-        .card-frame-white { background-color: #f8f6d8; }
-        .card-frame-blue { background-color: #aae0fa; }
-        .card-frame-black { background-color: #cbcbcb; }
-        .card-frame-red { background-color: #f9aa8f; }
-        .card-frame-green { background-color: #9bd3ae; }
-        .card-frame-artifact { background-color: #cccccc; }
-        .card-frame-land { background-color: #d4c0a1; }
-        .card-frame-colorless { background-color: #d8d8d8; }
-        .card-frame-multi { background: linear-gradient(to right, #f8f6d8, #aae0fa, #cbcbcb, #f9aa8f, #9bd3ae); }
-        .card-frame-azorius { background: linear-gradient(to bottom right, #f8f6d8, #aae0fa); }
-        .card-frame-dimir { background: linear-gradient(to bottom right, #aae0fa, #cbcbcb); }
-        .card-frame-rakdos { background: linear-gradient(to bottom right, #cbcbcb, #f9aa8f); }
-        .card-frame-gruul { background: linear-gradient(to bottom right, #f9aa8f, #9bd3ae); }
-        .card-frame-selesnya { background: linear-gradient(to bottom right, #9bd3ae, #f8f6d8); }
-
-        /* Other Card Styles */
+        /* Elements above the main text remain absolutely positioned */
         .card-title-bar {
-            position: absolute; top: 10px; left: 10px; right: 10px; height: 30px;
-            background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 0 8px; font-size: 14px; font-weight: bold; border: 1px solid #555;
+            position: absolute; top: 10px; left: 10px; right: 10px; min-height: 30px; height: auto;
+            background-color: rgba(255, 255, 255, 0.7); border-radius: 6px; display: flex;
+            justify-content: center; align-items: center; padding: 4px 8px; font-size: 16px;
+            font-weight: 600; border: 1px solid rgba(200, 200, 200, 0.8); text-align: center;
         }
-        .card-name { flex-grow: 1; text-align: left; }
-        .card-mana-cost { text-align: right; min-width: 40px; }
         .card-art {
-            position: absolute; top: 45px; left: 15px; right: 15px; height: 180px;
-            background-color: #ddd; background-size: cover; background-position: center;
-            border: 1px solid #555;
+            position: absolute; top: 50px; left: 15px; right: 15px; height: 180px;
+            background-color: #e4e4e7; background-size: cover; background-position: center;
+            border: 1px solid #d4d4d8; border-radius: 4px;
         }
-        /* *** MODIFIED: Type Line Styling *** */
-        .card-type-line {
-            position: absolute; top: 230px; left: 10px; right: 10px;
-            min-height: 25px; /* Minimum height */
-            height: auto; /* Auto height based on content */
-            background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
-            display: flex;
-            justify-content: space-between;
-            /* Changed vertical alignment */
-            align-items: flex-start;
-            /* Increased vertical padding */
-            padding: 6px 8px;
-            font-size: 12px;
-            font-weight: bold; border: 1px solid #555;
+        .card-subtitle-line {
+            position: absolute; top: 240px; left: 10px; right: 10px; min-height: 25px; height: auto;
+            background-color: rgba(255, 255, 255, 0.7); border-radius: 6px; display: flex;
+            justify-content: center; align-items: flex-start; padding: 6px 8px; font-size: 13px;
+            font-weight: 500; border: 1px solid rgba(200, 200, 200, 0.8); text-align: center;
         }
-        #previewType {
-            flex-grow: 1;
-            flex-shrink: 1;
-            min-width: 0;
-            text-align: left;
-            line-height: 1.25; /* Slightly adjusted line height */
+        #previewSubtitle { flex-grow: 1; flex-shrink: 1; min-width: 0; text-align: center; line-height: 1.3; }
+
+        /* *** MODIFIED: Main Text Box - Normal Flow *** */
+        .card-main-text-box {
+            /* Removed position: absolute */
+            margin-left: 15px;
+            margin-right: 15px;
+            /* Set margin-top to clear absolutely positioned elements above */
+            /* Approx: Art(50+180) + Subtitle(min 25) + gaps = ~275px */
+            /* Adjust this value if subtitle wraps significantly often */
+             margin-top: 275px;
+             margin-bottom: 10px; /* Space before creator info */
+            background-color: rgba(255, 255, 255, 0.6); border-radius: 5px; padding: 10px;
+            border: 1px solid #e4e4e7; line-height: 1.4; cursor: text;
+             /* Height is now auto based on content */
         }
-        .card-rules-text-box {
-            position: absolute; left: 15px; right: 15px; bottom: 50px;
-            /* Top position set by JS */
-            background-color: rgba(255, 255, 255, 0.7); border-radius: 5px;
-            padding: 8px; font-size: 12px; overflow-y: auto; border: 1px solid #aaa;
-            line-height: 1.3; cursor: text;
+        #previewMainText { outline: none; min-height: 20px; width: 100%; }
+        #previewMainText[contenteditable="true"]:empty::before { content: "Main text details here..."; color: #a1a1aa; font-style: italic; }
+        .card-notes-text { font-style: italic; margin-top: 10px; font-size: 12px; color: #52525b; }
+
+        /* *** MODIFIED: Creator Info - Normal Flow *** */
+        .card-creator-info {
+            /* Removed position: absolute, bottom, left */
+            margin-left: 15px;
+            margin-right: 15px;
+            margin-bottom: 5px; /* Space below creator */
+            font-size: 10px; color: #71717a;
         }
-        .card-rules-text-box p { margin: 0 0 5px 0; }
-        #previewRulesText[contenteditable="true"] { outline: none; min-height: 20px; }
-        #previewRulesText[contenteditable="true"]:empty::before {
-            content: "Rules text appears here."; color: #888; font-style: italic;
-        }
-        .card-flavor-text { font-style: italic; margin-top: 10px; }
-        .card-pt-box {
-            position: absolute; bottom: 10px; right: 15px; min-width: 40px; height: 25px;
-            background-color: rgba(200, 200, 200, 0.8); border-radius: 12px / 15px;
-            display: flex; justify-content: center; align-items: center;
-            font-size: 14px; font-weight: bold; padding: 0 8px; border: 1px solid #555;
-        }
-        .card-artist-info { position: absolute; bottom: 15px; left: 15px; font-size: 10px; font-style: italic; }
+
+        /* Input styling remains the same */
+        input[type="color"] { -webkit-appearance: none; appearance: none; width: 40px; height: 25px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; vertical-align: middle; }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; border-radius: 4px; }
+        input[type="color"]::-webkit-color-swatch { border: none; border-radius: 4px; }
+        input[type="color"]::-moz-color-swatch { border: none; border-radius: 4px; }
+        .text-align-left { text-align: left; } .text-align-center { text-align: center; } .text-align-right { text-align: right; }
+        .font-size-small { font-size: 12px; line-height: 1.3; } .font-size-medium { font-size: 14px; line-height: 1.4; } .font-size-large { font-size: 16px; line-height: 1.5; }
+        .control-group { margin-bottom: 1rem; }
+        .control-group label { display: block; text-sm font-medium text-gray-700 mb-1; }
+        .control-group .button-group button { padding: 0.3rem 0.6rem; margin-right: 0.3rem; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: #f9fafb; font-size: 0.8rem; cursor: pointer; }
+        .control-group .button-group button.active { background-color: #dbeafe; border-color: #60a5fa; font-weight: 600; }
+        #mainText { resize: none; overflow-y: hidden; min-height: 80px; box-sizing: border-box; }
+
     </style>
 </head>
 <body class="bg-gray-100 p-8">
 
-    <h1 class="text-3xl font-bold text-center mb-8">CommCard Generate V2</h1>
+    <h1 class="text-3xl font-bold text-center mb-8">Communication Card Generator V2.1</h1>
 
     <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
 
         <div class="bg-white p-6 rounded-lg shadow-md">
             <h2 class="text-xl font-semibold mb-4">Card Details</h2>
-            <div class="mb-4">
-                <label for="cardName" class="block text-sm font-medium text-gray-700 mb-1">Card Name:</label>
-                <input type="text" id="cardName" name="cardName" placeholder="e.g., Serra Angel" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            <div class="control-group">
+                <label for="templateSelect">Load Template:</label>
+                <select id="templateSelect" name="templateSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                    <option value="">-- Select Template --</option>
+                    <option value="coffee">Coffee Order</option>
+                    <option value="feelings_overwhelmed">Feeling Overwhelmed</option>
+                    <option value="need_quiet">Need Quiet Time</option>
+                </select>
             </div>
             <div class="mb-4">
-                <label for="manaCost" class="block text-sm font-medium text-gray-700 mb-1">Mana Cost:</label>
-                <input type="text" id="manaCost" name="manaCost" placeholder="e.g., 3WW" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                <p class="text-xs text-gray-500 mt-1">Use W, U, B, R, G, C (Colorless), X, and numbers.</p>
+                <label for="cardTitle" class="block text-sm font-medium text-gray-700 mb-1">Title:</label>
+                <input type="text" id="cardTitle" name="cardTitle" placeholder="e.g., Coffee Order, Feelings" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+             <div class="mb-4 flex items-center space-x-4">
+                 <div>
+                     <label for="cardBgColor" class="block text-sm font-medium text-gray-700 mb-1">Background Color:</label>
+                     <input type="color" id="cardBgColor" name="cardBgColor" value="#ffffff">
+                 </div>
+                 <div>
+                     <label for="cardTextColor" class="block text-sm font-medium text-gray-700 mb-1">Main Text Color:</label>
+                     <input type="color" id="cardTextColor" name="cardTextColor" value="#18181b">
+                 </div>
+            </div>
+            <div class="mb-4">
+                <label for="cardSubtitle" class="block text-sm font-medium text-gray-700 mb-1">Subtitle / Key Info:</label>
+                <input type="text" id="cardSubtitle" name="cardSubtitle" placeholder="e.g., Hi, I'm Liam, I'm Autistic" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+             <div class="control-group">
+                 <label>Main Text Formatting:</label>
+                 <div class="flex space-x-4">
+                     <div class="button-group" id="textAlignGroup">
+                         <span class="text-sm font-medium text-gray-500 mr-2">Align:</span>
+                         <button data-align="left" class="active">Left</button>
+                         <button data-align="center">Center</button>
+                         <button data-align="right">Right</button>
+                     </div>
+                     <div class="button-group" id="fontSizeGroup">
+                          <span class="text-sm font-medium text-gray-500 mr-2">Size:</span>
+                         <button data-size="small">S</button>
+                         <button data-size="medium" class="active">M</button>
+                         <button data-size="large">L</button>
+                     </div>
+                 </div>
+            </div>
+            <div class="mb-4">
+                <label for="mainText" class="block text-sm font-medium text-gray-700 mb-1">Main Text / Details:</label>
+                <textarea id="mainText" name="mainText" placeholder="Enter the main communication details here. Use line breaks for new lines." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                 <p class="text-xs text-gray-500 mt-1">This area in the preview is also directly editable.</p>
             </div>
              <div class="mb-4">
-                <label for="cardColor" class="block text-sm font-medium text-gray-700 mb-1">Card Color/Frame:</label>
-                <select id="cardColor" name="cardColor" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white">
-                    <option value="white" selected>White</option>
-                    <option value="blue">Blue</option>
-                    <option value="black">Black</option>
-                    <option value="red">Red</option>
-                    <option value="green">Green</option>
-                    <option value="multi">Multicolor (Gold)</option>
-                    <option value="artifact">Artifact</option>
-                    <option value="land">Land</option>
-                    <option value="colorless">Colorless</option>
-                    <option value="azorius">Azorius (WU)</option>
-                    <option value="dimir">Dimir (UB)</option>
-                    <option value="rakdos">Rakdos (BR)</option>
-                    <option value="gruul">Gruul (RG)</option>
-                    <option value="selesnya">Selesnya (GW)</option>
-                    </select>
+                <label for="notesText" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional):</label>
+                <textarea id="notesText" name="notesText" rows="2" placeholder="e.g., Thank you for understanding." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
             </div>
             <div class="mb-4">
-                <label for="cardType" class="block text-sm font-medium text-gray-700 mb-1">Type Line:</label>
-                <input type="text" id="cardType" name="cardType" placeholder="e.g., Creature - Angel" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <label for="creatorName" class="block text-sm font-medium text-gray-700 mb-1">Creator (Optional):</label>
+                <input type="text" id="creatorName" name="creatorName" placeholder="e.g., Liam" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
             </div>
             <div class="mb-4">
-                <label for="rulesText" class="block text-sm font-medium text-gray-700 mb-1">Rules Text:</label>
-                <textarea id="rulesText" name="rulesText" rows="4" placeholder="e.g., Flying, Vigilance&#10;Tap: Add W to your mana pool." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
-                 <p class="text-xs text-gray-500 mt-1">Use double line breaks for new paragraphs. Updates preview below.</p>
+                <label for="cardImage" class="block text-sm font-medium text-gray-700 mb-1">Image:</label>
+                <input type="file" id="cardImage" name="cardImage" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                <input type="hidden" id="imageDataUrl" name="imageDataUrl">
             </div>
-             <div class="mb-4">
-                <label for="flavorText" class="block text-sm font-medium text-gray-700 mb-1">Flavor Text:</label>
-                <textarea id="flavorText" name="flavorText" rows="2" placeholder="e.g., Her sword sings defiance." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                 <button id="saveButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-sm">Save Card</button>
+                 <button id="loadButton" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-md shadow-sm">Load Card</button>
+                 <button id="clearButton" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md shadow-sm">Clear All</button>
+                 <button id="downloadButton" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md shadow-sm">Download PNG</button>
             </div>
-            <div class="mb-4">
-                <label for="powerToughness" class="block text-sm font-medium text-gray-700 mb-1">Power/Toughness:</label>
-                <input type="text" id="powerToughness" name="powerToughness" placeholder="e.g., 4/4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-             <div class="mb-4">
-                <label for="artistName" class="block text-sm font-medium text-gray-700 mb-1">Artist Name:</label>
-                <input type="text" id="artistName" name="artistName" placeholder="e.g., Your Name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-            </div>
-            <div class="mb-4">
-                <label for="cardImage" class="block text-sm font-medium text-gray-700 mb-1">Card Image:</label>
-                <input type="file" id="cardImage" name="cardImage" accept="image/*" class="w-full text-sm text-gray-500
-                    file:mr-4 file:py-2 file:px-4
-                    file:rounded-md file:border-0
-                    file:text-sm file:font-semibold
-                    file:bg-indigo-50 file:text-indigo-700
-                    hover:file:bg-indigo-100
-                ">
-            </div>
-            <div class="mt-6">
-                 <button id="downloadButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                    Download Card as PNG
-                 </button>
-            </div>
+            <p id="saveStatus" class="text-xs text-green-600 mt-2 text-center h-4"></p>
         </div>
 
         <div class="flex flex-col items-center">
              <h2 class="text-xl font-semibold mb-4">Card Preview</h2>
-            <div id="cardPreview" class="card-preview-area card-frame-white">
-                <div class="card-title-bar">
-                    <span id="previewName" class="card-name">Card Name</span>
-                    <span id="previewManaCost" class="card-mana-cost">Cost</span>
-                </div>
+             <div id="cardPreview" class="card-preview-area">
+                 <div class="card-title-bar"> <span id="previewTitle">Card Title</span> </div>
                 <div id="previewArt" class="card-art"></div>
-                <div class="card-type-line" id="cardTypeLine"> <span id="previewType" class="card-type">Type Line</span>
+                <div class="card-subtitle-line" id="cardSubtitleLine"> <span id="previewSubtitle">Subtitle / Key Info</span> </div>
+                <div class="card-main-text-box font-size-medium text-align-left" id="mainTextBox">
+                    <div id="previewMainText" contenteditable="true"></div>
+                    <div id="previewNotesText" class="card-notes-text"></div>
                 </div>
-                <div class="card-rules-text-box" id="rulesTextBox"> <div id="previewRulesText" contenteditable="true"></div>
-                    <div id="previewFlavorText" class="card-flavor-text"></div>
-                </div>
-                <div id="previewArtistInfo" class="card-artist-info">
-                    Illus. Artist Name
-                </div>
-                <div id="previewPTBox" class="card-pt-box">
-                    P/T
-                </div>
+                <div id="previewCreatorInfo" class="card-creator-info"> Card by Creator Name </div>
             </div>
-             <p class="text-xs text-gray-500 mt-2 text-center">Note: Rules text in preview is now directly editable.</p>
+             <p class="text-xs text-gray-500 mt-2 text-center">Note: Main text in preview is directly editable.</p>
         </div>
     </div>
 
     <script>
-        // Get references to input elements
-        const cardNameInput = document.getElementById('cardName');
-        const manaCostInput = document.getElementById('manaCost');
-        const cardColorSelect = document.getElementById('cardColor');
-        const cardTypeInput = document.getElementById('cardType');
-        const rulesTextInput = document.getElementById('rulesText');
-        const flavorTextInput = document.getElementById('flavorText');
-        const powerToughnessInput = document.getElementById('powerToughness');
-        const artistNameInput = document.getElementById('artistName');
+        // Get references (remove ones related to adjustLayout)
+        const cardTitleInput = document.getElementById('cardTitle');
+        const cardBgColorInput = document.getElementById('cardBgColor');
+        const cardTextColorInput = document.getElementById('cardTextColor');
+        const cardSubtitleInput = document.getElementById('cardSubtitle');
+        const mainTextInput = document.getElementById('mainText'); // Textarea
+        const notesTextInput = document.getElementById('notesText');
+        const creatorNameInput = document.getElementById('creatorName');
         const cardImageInput = document.getElementById('cardImage');
+        const imageDataUrlInput = document.getElementById('imageDataUrl');
+        const templateSelect = document.getElementById('templateSelect');
+        const textAlignGroup = document.getElementById('textAlignGroup');
+        const fontSizeGroup = document.getElementById('fontSizeGroup');
         const downloadButton = document.getElementById('downloadButton');
-
-        // Get references to preview elements
+        const saveButton = document.getElementById('saveButton');
+        const loadButton = document.getElementById('loadButton');
+        const clearButton = document.getElementById('clearButton');
+        const saveStatus = document.getElementById('saveStatus');
         const cardPreview = document.getElementById('cardPreview');
-        const previewName = document.getElementById('previewName');
-        const previewManaCost = document.getElementById('previewManaCost');
+        const previewTitle = document.getElementById('previewTitle');
         const previewArt = document.getElementById('previewArt');
-        const previewType = document.getElementById('previewType');
-        const cardTypeLine = document.getElementById('cardTypeLine');
-        const rulesTextBox = document.getElementById('rulesTextBox');
-        const previewRulesText = document.getElementById('previewRulesText');
-        const previewFlavorText = document.getElementById('previewFlavorText');
-        const previewPTBox = document.getElementById('previewPTBox');
-        const previewArtistInfo = document.getElementById('previewArtistInfo');
+        const previewSubtitle = document.getElementById('previewSubtitle');
+        // Removed cardSubtitleLine, mainTextBox references as they aren't needed for JS positioning
+        const mainTextBoxPreview = document.getElementById('mainTextBox'); // Keep ref for styling
+        const previewMainText = document.getElementById('previewMainText'); // Editable Div
+        const previewNotesText = document.getElementById('previewNotesText');
+        const previewCreatorInfo = document.getElementById('previewCreatorInfo');
 
-        // Function to Adjust Layout
-        function adjustLayout() {
-            // Use setTimeout to allow browser rendering after text change
-            setTimeout(() => {
-                const typeLineBottom = cardTypeLine.offsetTop + cardTypeLine.offsetHeight;
-                const rulesTextTopMargin = 5;
-                rulesTextBox.style.top = (typeLineBottom + rulesTextTopMargin) + 'px';
-            }, 0); // Timeout 0 pushes execution after current rendering cycle
-        }
+        // Constants and Defaults (remain the same)
+        const LOCAL_STORAGE_KEY = 'savedCommCardData';
+        const DEFAULT_BG_COLOR = '#ffffff';
+        const DEFAULT_TEXT_COLOR = '#18181b';
+        const DEFAULT_TEXT_ALIGN = 'left';
+        const DEFAULT_FONT_SIZE = 'medium';
 
-        // Event Listeners for Live Update
+        // Templates Data (remain the same)
+        const templates = {
+             coffee: { title: "Coffee Order", subtitle: "Hi, I'm [Your Name], I'm Autistic", mainText: "Order:\n- Mocha\n- Large\n- Extra Sprinkles\n- Extra Cream\n- To Go", notes: "Pay by Card. Thank you!", creator: "[Your Name]", bgColor: "#fef9c3", textColor: "#18181b", textAlign: "left", fontSize: "medium", imageDataUrl: null },
+             feelings_overwhelmed: { title: "Feeling Overwhelmed", subtitle: "I need some space or quiet", mainText: "Right now, I'm feeling overwhelmed or overstimulated.\n\nPlease give me some space or help me find a quiet area.\n\nI might not be able to talk much right now.", notes: "Thank you for understanding.", creator: "", bgColor: "#e0f2fe", textColor: "#18181b", textAlign: "left", fontSize: "medium", imageDataUrl: null },
+             need_quiet: { title: "Need Quiet Time", subtitle: "Requesting a quiet space", mainText: "I need some quiet time to regulate.\n\nPlease help me find a quiet spot or reduce noise levels if possible.\n\nI appreciate your help.", notes: "", creator: "", bgColor: "#dcfce7", textColor: "#18181b", textAlign: "left", fontSize: "medium", imageDataUrl: null }
+        };
 
-        cardNameInput.addEventListener('input', () => {
-            previewName.textContent = cardNameInput.value || 'Card Name';
-        });
-
-        manaCostInput.addEventListener('input', () => {
-            previewManaCost.textContent = manaCostInput.value || 'Cost';
-        });
-
-        cardColorSelect.addEventListener('change', () => {
-            cardPreview.classList.remove(
-                'card-frame-white', 'card-frame-blue', 'card-frame-black',
-                'card-frame-red', 'card-frame-green', 'card-frame-multi',
-                'card-frame-artifact', 'card-frame-land', 'card-frame-colorless',
-                'card-frame-azorius', 'card-frame-dimir', 'card-frame-rakdos',
-                'card-frame-gruul', 'card-frame-selesnya'
-            );
-            cardPreview.classList.add(`card-frame-${cardColorSelect.value}`);
-        });
-
-        // MODIFIED: Update Card Type Listener
-        cardTypeInput.addEventListener('input', () => {
-            previewType.textContent = cardTypeInput.value || 'Type Line';
-            // Adjust layout AFTER text content might cause wrapping
-            adjustLayout(); // Changed from requestAnimationFrame to setTimeout
-        });
-
-        rulesTextInput.addEventListener('input', () => {
-            const paragraphs = rulesTextInput.value.split('\n\n');
-            const htmlContent = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
-            if (previewRulesText.innerHTML !== htmlContent) {
-                 previewRulesText.innerHTML = htmlContent;
-            }
-        });
-
-        previewRulesText.addEventListener('input', () => {
-            const plainText = previewRulesText.innerText;
-            if (rulesTextInput.value !== plainText) {
-                rulesTextInput.value = plainText;
-            }
-        });
-
-        flavorTextInput.addEventListener('input', () => {
-            previewFlavorText.textContent = flavorTextInput.value;
-        });
-
-        powerToughnessInput.addEventListener('input', () => {
-            previewPTBox.textContent = powerToughnessInput.value || 'P/T';
-            previewPTBox.style.display = powerToughnessInput.value ? 'flex' : 'none';
-        });
-
-        artistNameInput.addEventListener('input', () => {
-            previewArtistInfo.textContent = `Illus. ${artistNameInput.value || 'Artist Name'}`;
-        });
-
-        cardImageInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewArt.style.backgroundImage = `url('${e.target.result}')`;
-                    previewArt.style.backgroundColor = 'transparent';
+        // Utility Functions (remain the same)
+        function displaySaveStatus(message, isError = false) { /* ... */
+            saveStatus.textContent = message;
+            saveStatus.style.color = isError ? '#dc2626' : '#16a34a';
+            setTimeout(() => { saveStatus.textContent = ''; }, 3000);
+         }
+        function setActiveButton(buttonGroup, activeValue, dataAttribute) { /* ... */
+            const buttons = buttonGroup.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.dataset[dataAttribute] === activeValue) {
+                    button.classList.add('active');
+                } else {
+                    button.classList.remove('active');
                 }
-                reader.readAsDataURL(file);
+            });
+         }
+
+        // --- Removed adjustLayout function ---
+
+        // Textarea Auto-Resize Function (remains the same)
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = (textarea.scrollHeight + 2) + 'px';
+         }
+
+        // Update Functions (Removed adjustLayout call)
+        function updatePreviewFromInputs() {
+            previewTitle.textContent = cardTitleInput.value || 'Card Title';
+            cardPreview.style.backgroundColor = cardBgColorInput.value;
+            mainTextBoxPreview.style.color = cardTextColorInput.value; // Use mainTextBoxPreview ref
+            previewSubtitle.textContent = cardSubtitleInput.value || 'Subtitle / Key Info';
+            const mainHtmlContent = mainTextInput.value.replace(/\n/g, '<br>');
+            if (previewMainText.innerHTML !== mainHtmlContent) {
+                 previewMainText.innerHTML = mainHtmlContent;
+            }
+            previewNotesText.textContent = notesTextInput.value;
+            previewCreatorInfo.textContent = creatorNameInput.value ? `Card by ${creatorNameInput.value}` : '';
+            if (imageDataUrlInput.value) {
+                 previewArt.style.backgroundImage = `url('${imageDataUrlInput.value}')`;
+                 previewArt.style.backgroundColor = 'transparent';
             } else {
                  previewArt.style.backgroundImage = 'none';
-                 previewArt.style.backgroundColor = '#ddd';
+                 previewArt.style.backgroundColor = '#e4e4e7';
             }
-        });
+            // adjustLayout(); // No longer needed
+         }
 
-        downloadButton.addEventListener('click', () => {
-            html2canvas(cardPreview, { useCORS: true, logging: false }).then(canvas => {
-                const imageDataUrl = canvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                const filename = (cardNameInput.value || 'custom-mtg-card').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
-                link.download = filename;
-                link.href = imageDataUrl;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            }).catch(err => {
-                console.error("Error generating card image:", err);
-                alert("Sorry, there was an error generating the card image.");
-            });
-        });
+         // Event Listeners (Removed adjustLayout calls)
+
+        cardTitleInput.addEventListener('input', () => { previewTitle.textContent = cardTitleInput.value || 'Card Title'; });
+        cardBgColorInput.addEventListener('input', () => { cardPreview.style.backgroundColor = cardBgColorInput.value; });
+        cardTextColorInput.addEventListener('input', () => { mainTextBoxPreview.style.color = cardTextColorInput.value; }); // Use mainTextBoxPreview ref
+        cardSubtitleInput.addEventListener('input', () => { previewSubtitle.textContent = cardSubtitleInput.value || 'Subtitle / Key Info'; /* adjustLayout(); */ });
+        notesTextInput.addEventListener('input', () => { previewNotesText.textContent = notesTextInput.value; });
+        creatorNameInput.addEventListener('input', () => { previewCreatorInfo.textContent = creatorNameInput.value ? `Card by ${creatorNameInput.value}` : ''; });
+
+        mainTextInput.addEventListener('input', () => { autoResizeTextarea(mainTextInput); const htmlContent = mainTextInput.value.replace(/\n/g, '<br>'); if (document.activeElement !== previewMainText) { previewMainText.innerHTML = htmlContent; } /* adjustLayout(); */ });
+        previewMainText.addEventListener('input', () => { const plainText = previewMainText.innerHTML.replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]*>/g, ''); if (mainTextInput.value !== plainText) { mainTextInput.value = plainText; autoResizeTextarea(mainTextInput); } /* adjustLayout(); */ });
+        cardImageInput.addEventListener('change', (event) => { const file = event.target.files[0]; if (file) { const reader = new FileReader(); reader.onload = function(e) { previewArt.style.backgroundImage = `url('${e.target.result}')`; previewArt.style.backgroundColor = 'transparent'; imageDataUrlInput.value = e.target.result; }; reader.readAsDataURL(file); } else { previewArt.style.backgroundImage = 'none'; previewArt.style.backgroundColor = '#e4e4e7'; imageDataUrlInput.value = ''; } /* adjustLayout(); */ });
+        textAlignGroup.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { const alignValue = e.target.dataset.align; mainTextBoxPreview.classList.remove('text-align-left', 'text-align-center', 'text-align-right'); mainTextBoxPreview.classList.add(`text-align-${alignValue}`); setActiveButton(textAlignGroup, alignValue, 'align'); } }); // Use mainTextBoxPreview ref
+        fontSizeGroup.addEventListener('click', (e) => { if (e.target.tagName === 'BUTTON') { const sizeValue = e.target.dataset.size; mainTextBoxPreview.classList.remove('font-size-small', 'font-size-medium', 'font-size-large'); mainTextBoxPreview.classList.add(`font-size-${sizeValue}`); setActiveButton(fontSizeGroup, sizeValue, 'size'); } }); // Use mainTextBoxPreview ref
+        templateSelect.addEventListener('change', () => { const selectedTemplateKey = templateSelect.value; const template = templates[selectedTemplateKey]; if (template) { cardTitleInput.value = template.title || ''; cardBgColorInput.value = template.bgColor || DEFAULT_BG_COLOR; cardTextColorInput.value = template.textColor || DEFAULT_TEXT_COLOR; cardSubtitleInput.value = template.subtitle || ''; mainTextInput.value = template.mainText || ''; notesTextInput.value = template.notes || ''; creatorNameInput.value = template.creator || ''; imageDataUrlInput.value = template.imageDataUrl || ''; const textAlign = template.textAlign || DEFAULT_TEXT_ALIGN; const fontSize = template.fontSize || DEFAULT_FONT_SIZE; mainTextBoxPreview.classList.remove('text-align-left', 'text-align-center', 'text-align-right'); mainTextBoxPreview.classList.add(`text-align-${textAlign}`); setActiveButton(textAlignGroup, textAlign, 'align'); mainTextBoxPreview.classList.remove('font-size-small', 'font-size-medium', 'font-size-large'); mainTextBoxPreview.classList.add(`font-size-${fontSize}`); setActiveButton(fontSizeGroup, fontSize, 'size'); updatePreviewFromInputs(); previewMainText.innerHTML = mainTextInput.value.replace(/\n/g, '<br>'); autoResizeTextarea(mainTextInput); templateSelect.value = ""; } });
+        saveButton.addEventListener('click', () => { try { const cardData = { title: cardTitleInput.value, bgColor: cardBgColorInput.value, textColor: cardTextColorInput.value, subtitle: cardSubtitleInput.value, mainText: mainTextInput.value, notes: notesTextInput.value, creator: creatorNameInput.value, imageDataUrl: imageDataUrlInput.value, textAlign: mainTextBoxPreview.classList.contains('text-align-center') ? 'center' : (mainTextBoxPreview.classList.contains('text-align-right') ? 'right' : 'left'), fontSize: mainTextBoxPreview.classList.contains('font-size-small') ? 'small' : (mainTextBoxPreview.classList.contains('font-size-large') ? 'large' : 'medium') }; localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cardData)); displaySaveStatus('Card saved successfully!'); } catch (error) { console.error("Error saving card:", error); displaySaveStatus('Error saving card.', true); } }); // Use mainTextBoxPreview ref
+        loadButton.addEventListener('click', () => { const savedData = localStorage.getItem(LOCAL_STORAGE_KEY); if (savedData) { try { const cardData = JSON.parse(savedData); cardTitleInput.value = cardData.title || ''; cardBgColorInput.value = cardData.bgColor || DEFAULT_BG_COLOR; cardTextColorInput.value = cardData.textColor || DEFAULT_TEXT_COLOR; cardSubtitleInput.value = cardData.subtitle || ''; mainTextInput.value = cardData.mainText || ''; notesTextInput.value = cardData.notes || ''; creatorNameInput.value = cardData.creator || ''; imageDataUrlInput.value = cardData.imageDataUrl || ''; const textAlign = cardData.textAlign || DEFAULT_TEXT_ALIGN; const fontSize = cardData.fontSize || DEFAULT_FONT_SIZE; mainTextBoxPreview.classList.remove('text-align-left', 'text-align-center', 'text-align-right'); mainTextBoxPreview.classList.add(`text-align-${textAlign}`); setActiveButton(textAlignGroup, textAlign, 'align'); mainTextBoxPreview.classList.remove('font-size-small', 'font-size-medium', 'font-size-large'); mainTextBoxPreview.classList.add(`font-size-${fontSize}`); setActiveButton(fontSizeGroup, fontSize, 'size'); updatePreviewFromInputs(); previewMainText.innerHTML = mainTextInput.value.replace(/\n/g, '<br>'); autoResizeTextarea(mainTextInput); displaySaveStatus('Card loaded successfully!'); } catch (error) { console.error("Error loading card:", error); displaySaveStatus('Error loading card data.', true); } } else { displaySaveStatus('No saved card found.', true); } }); // Use mainTextBoxPreview ref
+        clearButton.addEventListener('click', () => { if (confirm('Are you sure you want to clear all fields?')) { cardTitleInput.value = ''; cardBgColorInput.value = DEFAULT_BG_COLOR; cardTextColorInput.value = DEFAULT_TEXT_COLOR; cardSubtitleInput.value = ''; mainTextInput.value = ''; notesTextInput.value = ''; creatorNameInput.value = ''; cardImageInput.value = ''; imageDataUrlInput.value = ''; mainTextBoxPreview.classList.remove('text-align-left', 'text-align-center', 'text-align-right'); mainTextBoxPreview.classList.add(`text-align-${DEFAULT_TEXT_ALIGN}`); setActiveButton(textAlignGroup, DEFAULT_TEXT_ALIGN, 'align'); mainTextBoxPreview.classList.remove('font-size-small', 'font-size-medium', 'font-size-large'); mainTextBoxPreview.classList.add(`font-size-${DEFAULT_FONT_SIZE}`); setActiveButton(fontSizeGroup, DEFAULT_FONT_SIZE, 'size'); updatePreviewFromInputs(); previewMainText.innerHTML = ''; autoResizeTextarea(mainTextInput); displaySaveStatus('Fields cleared.'); } }); // Use mainTextBoxPreview ref
+        downloadButton.addEventListener('click', () => { const bgColorToUse = cardBgColorInput.value || '#ffffff'; html2canvas(cardPreview, { useCORS: true, logging: false, backgroundColor: bgColorToUse }).then(canvas => { const imageDataUrl = canvas.toDataURL('image/png'); const link = document.createElement('a'); const filename = (cardTitleInput.value || 'communication-card').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png'; link.download = filename; link.href = imageDataUrl; document.body.appendChild(link); link.click(); document.body.removeChild(link); }).catch(err => { console.error("Error generating card image:", err); alert("Sorry, there was an error generating the card image."); }); });
 
         // --- Initial Setup ---
-        previewPTBox.style.display = powerToughnessInput.value ? 'flex' : 'none';
-        rulesTextInput.dispatchEvent(new Event('input'));
-        // Adjust layout on initial load
-        adjustLayout();
-        // Ensure layout adjusts if window is resized
-        window.addEventListener('resize', adjustLayout);
+        function initializeApp() {
+             cardPreview.style.backgroundColor = cardBgColorInput.value;
+             mainTextBoxPreview.style.color = cardTextColorInput.value; // Use mainTextBoxPreview ref
+             mainTextBoxPreview.classList.add(`text-align-${DEFAULT_TEXT_ALIGN}`); // Use mainTextBoxPreview ref
+             mainTextBoxPreview.classList.add(`font-size-${DEFAULT_FONT_SIZE}`); // Use mainTextBoxPreview ref
+             setActiveButton(textAlignGroup, DEFAULT_TEXT_ALIGN, 'align');
+             setActiveButton(fontSizeGroup, DEFAULT_FONT_SIZE, 'size');
+             updatePreviewFromInputs();
+             // adjustLayout(); // No longer needed
+             autoResizeTextarea(mainTextInput);
+             // window.addEventListener('resize', adjustLayout); // Resize listener no longer needed for this
+             console.log("App Initialized with Normal Flow Layout"); // Updated log
+        }
+        document.addEventListener('DOMContentLoaded', initializeApp);
 
     </script>
 
