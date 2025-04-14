@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CommCard Generate V2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        /* Custom CSS for the card styling */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .card-preview-area {
+            width: 300px; height: 420px; border: 1px solid #ccc; border-radius: 15px;
+            background-color: #f0f0f0; position: relative; overflow: hidden;
+            margin: 20px auto; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-family: sans-serif; color: #000;
+        }
+
+        /* --- Card Frame Colors --- */
+        /* Base Colors */
+        .card-frame-white { background-color: #f8f6d8; } /* Off-white */
+        .card-frame-blue { background-color: #aae0fa; } /* Light blue */
+        .card-frame-black { background-color: #cbcbcb; } /* Grey for black */
+        .card-frame-red { background-color: #f9aa8f; } /* Light red */
+        .card-frame-green { background-color: #9bd3ae; } /* Light green */
+        .card-frame-artifact { background-color: #cccccc; } /* Artifact grey */
+        .card-frame-land { background-color: #d4c0a1; } /* Land brown */
+        /* New Colors */
+        .card-frame-colorless { background-color: #d8d8d8; } /* Distinct grey for colorless */
+        .card-frame-multi { background: linear-gradient(to right, #f8f6d8, #aae0fa, #cbcbcb, #f9aa8f, #9bd3ae); } /* Gold/Multicolor */
+        /* Two-Color Pairs (Gradients) */
+        .card-frame-azorius { background: linear-gradient(to bottom right, #f8f6d8, #aae0fa); } /* White -> Blue */
+        .card-frame-dimir { background: linear-gradient(to bottom right, #aae0fa, #cbcbcb); } /* Blue -> Black(grey) */
+        .card-frame-rakdos { background: linear-gradient(to bottom right, #cbcbcb, #f9aa8f); } /* Black(grey) -> Red */
+        .card-frame-gruul { background: linear-gradient(to bottom right, #f9aa8f, #9bd3ae); } /* Red -> Green */
+        .card-frame-selesnya { background: linear-gradient(to bottom right, #9bd3ae, #f8f6d8); } /* Green -> White */
+
+        /* Other Card Styles (Remain the same) */
+        .card-title-bar {
+            position: absolute; top: 10px; left: 10px; right: 10px; height: 30px;
+            background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 8px; font-size: 14px; font-weight: bold; border: 1px solid #555;
+        }
+        .card-name { flex-grow: 1; text-align: left; }
+        .card-mana-cost { text-align: right; min-width: 40px; }
+        .card-art {
+            position: absolute; top: 45px; left: 15px; right: 15px; height: 180px;
+            background-color: #ddd; background-size: cover; background-position: center;
+            border: 1px solid #555;
+        }
+        .card-type-line {
+            position: absolute; top: 230px; left: 10px; right: 10px; height: 25px;
+            background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 8px; font-size: 13px; font-weight: bold; border: 1px solid #555;
+        }
+        .card-rules-text-box {
+            position: absolute; top: 260px; left: 15px; right: 15px; bottom: 50px;
+            background-color: rgba(255, 255, 255, 0.7); border-radius: 5px;
+            padding: 8px; font-size: 12px; overflow-y: auto; border: 1px solid #aaa;
+            line-height: 1.3; cursor: text;
+        }
+        .card-rules-text-box p { margin: 0 0 5px 0; }
+        #previewRulesText[contenteditable="true"] { outline: none; min-height: 20px; }
+        #previewRulesText[contenteditable="true"]:empty::before {
+            content: "Rules text appears here."; color: #888; font-style: italic;
+        }
+        .card-flavor-text { font-style: italic; margin-top: 10px; }
+        .card-pt-box {
+            position: absolute; bottom: 10px; right: 15px; min-width: 40px; height: 25px;
+            background-color: rgba(200, 200, 200, 0.8); border-radius: 12px / 15px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 14px; font-weight: bold; padding: 0 8px; border: 1px solid #555;
+        }
+        .card-artist-info { position: absolute; bottom: 15px; left: 15px; font-size: 10px; font-style: italic; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+
+    <h1 class="text-3xl font-bold text-center mb-8">CommCard Generate V2</h1>
+
+    <div class="container mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Card Details</h2>
+
+            <div class="mb-4">
+                <label for="cardName" class="block text-sm font-medium text-gray-700 mb-1">Card Name:</label>
+                <input type="text" id="cardName" name="cardName" placeholder="e.g., Serra Angel" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="manaCost" class="block text-sm font-medium text-gray-700 mb-1">Mana Cost:</label>
+                <input type="text" id="manaCost" name="manaCost" placeholder="e.g., 3WW" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+                <p class="text-xs text-gray-500 mt-1">Use W, U, B, R, G, C (Colorless), X, and numbers.</p>
+            </div>
+
+             <div class="mb-4">
+                <label for="cardColor" class="block text-sm font-medium text-gray-700 mb-1">Card Color/Frame:</label>
+                <select id="cardColor" name="cardColor" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+                    <option value="white" selected>White</option>
+                    <option value="blue">Blue</option>
+                    <option value="black">Black</option>
+                    <option value="red">Red</option>
+                    <option value="green">Green</option>
+                    <option value="multi">Multicolor (Gold)</option>
+                    <option value="artifact">Artifact</option>
+                    <option value="land">Land</option>
+                    <option value="colorless">Colorless</option>
+                    <option value="azorius">Azorius (WU)</option>
+                    <option value="dimir">Dimir (UB)</option>
+                    <option value="rakdos">Rakdos (BR)</option>
+                    <option value="gruul">Gruul (RG)</option>
+                    <option value="selesnya">Selesnya (GW)</option>
+                    </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="cardType" class="block text-sm font-medium text-gray-700 mb-1">Type Line:</label>
+                <input type="text" id="cardType" name="cardType" placeholder="e.g., Creature - Angel" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="rulesText" class="block text-sm font-medium text-gray-700 mb-1">Rules Text:</label>
+                <textarea id="rulesText" name="rulesText" rows="4" placeholder="e.g., Flying, Vigilance&#10;Tap: Add W to your mana pool." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                 <p class="text-xs text-gray-500 mt-1">Use double line breaks for new paragraphs. Updates preview below.</p>
+            </div>
+
+             <div class="mb-4">
+                <label for="flavorText" class="block text-sm font-medium text-gray-700 mb-1">Flavor Text:</label>
+                <textarea id="flavorText" name="flavorText" rows="2" placeholder="e.g., Her sword sings defiance." class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+            </div>
+
+            <div class="mb-4">
+                <label for="powerToughness" class="block text-sm font-medium text-gray-700 mb-1">Power/Toughness:</label>
+                <input type="text" id="powerToughness" name="powerToughness" placeholder="e.g., 4/4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+             <div class="mb-4">
+                <label for="artistName" class="block text-sm font-medium text-gray-700 mb-1">Artist Name:</label>
+                <input type="text" id="artistName" name="artistName" placeholder="e.g., Your Name" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <div class="mb-4">
+                <label for="cardImage" class="block text-sm font-medium text-gray-700 mb-1">Card Image:</label>
+                <input type="file" id="cardImage" name="cardImage" accept="image/*" class="w-full text-sm text-gray-500
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-md file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-indigo-50 file:text-indigo-700
+                    hover:file:bg-indigo-100
+                ">
+            </div>
+
+            <div class="mt-6">
+                 <button id="downloadButton" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    Download Card as PNG
+                 </button>
+            </div>
+
+        </div>
+
+        <div class="flex flex-col items-center">
+             <h2 class="text-xl font-semibold mb-4">Card Preview</h2>
+            <div id="cardPreview" class="card-preview-area card-frame-white">
+                <div class="card-title-bar">
+                    <span id="previewName" class="card-name">Card Name</span>
+                    <span id="previewManaCost" class="card-mana-cost">Cost</span>
+                </div>
+                <div id="previewArt" class="card-art">
+                    </div>
+                <div class="card-type-line">
+                    <span id="previewType" class="card-type">Type Line</span>
+                    </div>
+                <div class="card-rules-text-box">
+                    <div id="previewRulesText" contenteditable="true"></div>
+                    <div id="previewFlavorText" class="card-flavor-text"></div>
+                </div>
+                <div id="previewArtistInfo" class="card-artist-info">
+                    Illus. Artist Name
+                </div>
+                <div id="previewPTBox" class="card-pt-box">
+                    P/T
+                </div>
+            </div>
+             <p class="text-xs text-gray-500 mt-2 text-center">Note: Rules text in preview is now directly editable.</p>
+        </div>
+
+    </div>
+
+    <script>
+        // Get references to input elements
+        const cardNameInput = document.getElementById('cardName');
+        const manaCostInput = document.getElementById('manaCost');
+        const cardColorSelect = document.getElementById('cardColor');
+        const cardTypeInput = document.getElementById('cardType');
+        const rulesTextInput = document.getElementById('rulesText'); // Textarea
+        const flavorTextInput = document.getElementById('flavorText');
+        const powerToughnessInput = document.getElementById('powerToughness');
+        const artistNameInput = document.getElementById('artistName');
+        const cardImageInput = document.getElementById('cardImage');
+        const downloadButton = document.getElementById('downloadButton');
+
+        // Get references to preview elements
+        const cardPreview = document.getElementById('cardPreview');
+        const previewName = document.getElementById('previewName');
+        const previewManaCost = document.getElementById('previewManaCost');
+        const previewArt = document.getElementById('previewArt');
+        const previewType = document.getElementById('previewType');
+        const previewRulesText = document.getElementById('previewRulesText'); // Editable Div
+        const previewFlavorText = document.getElementById('previewFlavorText');
+        const previewPTBox = document.getElementById('previewPTBox');
+        const previewArtistInfo = document.getElementById('previewArtistInfo');
+
+        // --- Event Listeners for Live Update ---
+
+        // Update Card Name
+        cardNameInput.addEventListener('input', () => {
+            previewName.textContent = cardNameInput.value || 'Card Name';
+        });
+
+        // Update Mana Cost
+        manaCostInput.addEventListener('input', () => {
+            previewManaCost.textContent = manaCostInput.value || 'Cost';
+        });
+
+        // Update Card Frame Color
+        cardColorSelect.addEventListener('change', () => {
+            cardPreview.classList.remove(
+                'card-frame-white', 'card-frame-blue', 'card-frame-black',
+                'card-frame-red', 'card-frame-green', 'card-frame-multi',
+                'card-frame-artifact', 'card-frame-land', 'card-frame-colorless',
+                'card-frame-azorius', 'card-frame-dimir', 'card-frame-rakdos',
+                'card-frame-gruul', 'card-frame-selesnya'
+            );
+            cardPreview.classList.add(`card-frame-${cardColorSelect.value}`);
+        });
+
+        // Update Card Type
+        cardTypeInput.addEventListener('input', () => {
+            previewType.textContent = cardTypeInput.value || 'Type Line';
+        });
+
+        // Update Rules Text (Textarea -> Preview Div)
+        rulesTextInput.addEventListener('input', () => {
+            const paragraphs = rulesTextInput.value.split('\n\n');
+            const htmlContent = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+            if (previewRulesText.innerHTML !== htmlContent) {
+                 previewRulesText.innerHTML = htmlContent;
+            }
+        });
+
+        // Update Rules Text (Preview Div -> Textarea)
+        previewRulesText.addEventListener('input', () => {
+            const plainText = previewRulesText.innerText;
+            if (rulesTextInput.value !== plainText) {
+                rulesTextInput.value = plainText;
+            }
+        });
+
+         // Update Flavor Text
+        flavorTextInput.addEventListener('input', () => {
+            previewFlavorText.textContent = flavorTextInput.value;
+        });
+
+        // Update Power/Toughness
+        powerToughnessInput.addEventListener('input', () => {
+            previewPTBox.textContent = powerToughnessInput.value || 'P/T';
+            previewPTBox.style.display = powerToughnessInput.value ? 'flex' : 'none';
+        });
+
+         // Update Artist Name
+        artistNameInput.addEventListener('input', () => {
+            previewArtistInfo.textContent = `Illus. ${artistNameInput.value || 'Artist Name'}`;
+        });
+
+        // Update Card Image
+        cardImageInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewArt.style.backgroundImage = `url('${e.target.result}')`;
+                    previewArt.style.backgroundColor = 'transparent';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                 previewArt.style.backgroundImage = 'none';
+                 previewArt.style.backgroundColor = '#ddd';
+            }
+        });
+
+        // Download Functionality
+        downloadButton.addEventListener('click', () => {
+            html2canvas(cardPreview, { useCORS: true, logging: false }).then(canvas => {
+                const imageDataUrl = canvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                const filename = (cardNameInput.value || 'custom-mtg-card').replace(/[^a-z0-9]/gi, '_').toLowerCase() + '.png';
+                link.download = filename;
+                link.href = imageDataUrl;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }).catch(err => {
+                console.error("Error generating card image:", err);
+                alert("Sorry, there was an error generating the card image.");
+            });
+        });
+
+
+        // --- Initial Setup ---
+        previewPTBox.style.display = powerToughnessInput.value ? 'flex' : 'none';
+        rulesTextInput.dispatchEvent(new Event('input')); // Populate preview rules on load
+
+    </script>
+
+</body>
+</html>
