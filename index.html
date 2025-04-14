@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CommCard Generate V2</title>
+    <title>CommCard Generate V2.1</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMV/TJlSKda6FXzoEyYGjTe+vXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
@@ -18,7 +18,7 @@
             font-family: sans-serif; color: #000;
         }
 
-        /* Card Frame Colors (remain the same) */
+        /* Card Frame Colors */
         .card-frame-white { background-color: #f8f6d8; }
         .card-frame-blue { background-color: #aae0fa; }
         .card-frame-black { background-color: #cbcbcb; }
@@ -51,28 +51,28 @@
         /* *** MODIFIED: Type Line Styling *** */
         .card-type-line {
             position: absolute; top: 230px; left: 10px; right: 10px;
-            /* Removed fixed height, added min-height */
-            min-height: 25px;
+            min-height: 25px; /* Minimum height */
+            height: auto; /* Auto height based on content */
             background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 4px 8px; /* Adjusted padding slightly for wrapping */
+            display: flex;
+            justify-content: space-between;
+            /* Changed vertical alignment */
+            align-items: flex-start;
+            /* Increased vertical padding */
+            padding: 6px 8px;
             font-size: 12px;
             font-weight: bold; border: 1px solid #555;
-            /* Allow height to adjust based on content */
-            height: auto;
         }
-        /* *** MODIFIED: Style for the text span inside type line *** */
         #previewType {
             flex-grow: 1;
             flex-shrink: 1;
             min-width: 0;
-            /* Removed white-space, overflow, text-overflow to allow wrapping */
             text-align: left;
-            line-height: 1.2; /* Adjust line height for wrapped text */
+            line-height: 1.25; /* Slightly adjusted line height */
         }
         .card-rules-text-box {
-            /* Top position will now be set dynamically by JavaScript */
-            position: absolute; /* top: 260px; */ left: 15px; right: 15px; bottom: 50px;
+            position: absolute; left: 15px; right: 15px; bottom: 50px;
+            /* Top position set by JS */
             background-color: rgba(255, 255, 255, 0.7); border-radius: 5px;
             padding: 8px; font-size: 12px; overflow-y: auto; border: 1px solid #aaa;
             line-height: 1.3; cursor: text;
@@ -209,23 +209,24 @@
         const previewManaCost = document.getElementById('previewManaCost');
         const previewArt = document.getElementById('previewArt');
         const previewType = document.getElementById('previewType');
-        const cardTypeLine = document.getElementById('cardTypeLine'); // *** NEW: Ref to type line container ***
-        const rulesTextBox = document.getElementById('rulesTextBox'); // *** NEW: Ref to rules text box ***
+        const cardTypeLine = document.getElementById('cardTypeLine');
+        const rulesTextBox = document.getElementById('rulesTextBox');
         const previewRulesText = document.getElementById('previewRulesText');
         const previewFlavorText = document.getElementById('previewFlavorText');
         const previewPTBox = document.getElementById('previewPTBox');
         const previewArtistInfo = document.getElementById('previewArtistInfo');
 
-        // --- *** NEW: Function to Adjust Layout *** ---
+        // Function to Adjust Layout
         function adjustLayout() {
-            // Calculate where the bottom of the type line is
-            const typeLineBottom = cardTypeLine.offsetTop + cardTypeLine.offsetHeight;
-            // Set the top of the rules text box slightly below the type line
-            const rulesTextTopMargin = 5; // Adjust this gap as needed
-            rulesTextBox.style.top = (typeLineBottom + rulesTextTopMargin) + 'px';
+            // Use setTimeout to allow browser rendering after text change
+            setTimeout(() => {
+                const typeLineBottom = cardTypeLine.offsetTop + cardTypeLine.offsetHeight;
+                const rulesTextTopMargin = 5;
+                rulesTextBox.style.top = (typeLineBottom + rulesTextTopMargin) + 'px';
+            }, 0); // Timeout 0 pushes execution after current rendering cycle
         }
 
-        // --- Event Listeners for Live Update ---
+        // Event Listeners for Live Update
 
         cardNameInput.addEventListener('input', () => {
             previewName.textContent = cardNameInput.value || 'Card Name';
@@ -246,12 +247,11 @@
             cardPreview.classList.add(`card-frame-${cardColorSelect.value}`);
         });
 
-        // *** MODIFIED: Update Card Type Listener ***
+        // MODIFIED: Update Card Type Listener
         cardTypeInput.addEventListener('input', () => {
             previewType.textContent = cardTypeInput.value || 'Type Line';
-            // *** NEW: Adjust layout AFTER text content changes ***
-            // Use requestAnimationFrame to ensure browser has recalculated layout
-            requestAnimationFrame(adjustLayout);
+            // Adjust layout AFTER text content might cause wrapping
+            adjustLayout(); // Changed from requestAnimationFrame to setTimeout
         });
 
         rulesTextInput.addEventListener('input', () => {
@@ -316,9 +316,9 @@
         // --- Initial Setup ---
         previewPTBox.style.display = powerToughnessInput.value ? 'flex' : 'none';
         rulesTextInput.dispatchEvent(new Event('input'));
-        // *** NEW: Adjust layout on initial load ***
+        // Adjust layout on initial load
         adjustLayout();
-        // Ensure layout adjusts if window is resized (optional but good practice)
+        // Ensure layout adjusts if window is resized
         window.addEventListener('resize', adjustLayout);
 
     </script>
