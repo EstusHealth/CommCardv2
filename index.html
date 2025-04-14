@@ -18,26 +18,23 @@
             font-family: sans-serif; color: #000;
         }
 
-        /* --- Card Frame Colors --- */
-        /* Base Colors */
-        .card-frame-white { background-color: #f8f6d8; } /* Off-white */
-        .card-frame-blue { background-color: #aae0fa; } /* Light blue */
-        .card-frame-black { background-color: #cbcbcb; } /* Grey for black */
-        .card-frame-red { background-color: #f9aa8f; } /* Light red */
-        .card-frame-green { background-color: #9bd3ae; } /* Light green */
-        .card-frame-artifact { background-color: #cccccc; } /* Artifact grey */
-        .card-frame-land { background-color: #d4c0a1; } /* Land brown */
-        /* New Colors */
-        .card-frame-colorless { background-color: #d8d8d8; } /* Distinct grey for colorless */
-        .card-frame-multi { background: linear-gradient(to right, #f8f6d8, #aae0fa, #cbcbcb, #f9aa8f, #9bd3ae); } /* Gold/Multicolor */
-        /* Two-Color Pairs (Gradients) */
-        .card-frame-azorius { background: linear-gradient(to bottom right, #f8f6d8, #aae0fa); } /* White -> Blue */
-        .card-frame-dimir { background: linear-gradient(to bottom right, #aae0fa, #cbcbcb); } /* Blue -> Black(grey) */
-        .card-frame-rakdos { background: linear-gradient(to bottom right, #cbcbcb, #f9aa8f); } /* Black(grey) -> Red */
-        .card-frame-gruul { background: linear-gradient(to bottom right, #f9aa8f, #9bd3ae); } /* Red -> Green */
-        .card-frame-selesnya { background: linear-gradient(to bottom right, #9bd3ae, #f8f6d8); } /* Green -> White */
+        /* Card Frame Colors (remain the same) */
+        .card-frame-white { background-color: #f8f6d8; }
+        .card-frame-blue { background-color: #aae0fa; }
+        .card-frame-black { background-color: #cbcbcb; }
+        .card-frame-red { background-color: #f9aa8f; }
+        .card-frame-green { background-color: #9bd3ae; }
+        .card-frame-artifact { background-color: #cccccc; }
+        .card-frame-land { background-color: #d4c0a1; }
+        .card-frame-colorless { background-color: #d8d8d8; }
+        .card-frame-multi { background: linear-gradient(to right, #f8f6d8, #aae0fa, #cbcbcb, #f9aa8f, #9bd3ae); }
+        .card-frame-azorius { background: linear-gradient(to bottom right, #f8f6d8, #aae0fa); }
+        .card-frame-dimir { background: linear-gradient(to bottom right, #aae0fa, #cbcbcb); }
+        .card-frame-rakdos { background: linear-gradient(to bottom right, #cbcbcb, #f9aa8f); }
+        .card-frame-gruul { background: linear-gradient(to bottom right, #f9aa8f, #9bd3ae); }
+        .card-frame-selesnya { background: linear-gradient(to bottom right, #9bd3ae, #f8f6d8); }
 
-        /* Other Card Styles (Remain the same) */
+        /* Other Card Styles */
         .card-title-bar {
             position: absolute; top: 10px; left: 10px; right: 10px; height: 30px;
             background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
@@ -51,11 +48,24 @@
             background-color: #ddd; background-size: cover; background-position: center;
             border: 1px solid #555;
         }
+        /* *** MODIFIED: Type Line Styling *** */
         .card-type-line {
             position: absolute; top: 230px; left: 10px; right: 10px; height: 25px;
             background-color: rgba(200, 200, 200, 0.8); border-radius: 8px;
             display: flex; justify-content: space-between; align-items: center;
-            padding: 0 8px; font-size: 13px; font-weight: bold; border: 1px solid #555;
+            padding: 0 8px;
+            font-size: 12px; /* Slightly reduced font size */
+            font-weight: bold; border: 1px solid #555;
+        }
+        /* *** NEW/MODIFIED: Style for the text span inside type line *** */
+        #previewType {
+            flex-grow: 1; /* Allow text to take available space */
+            flex-shrink: 1; /* Allow text to shrink if needed */
+            min-width: 0; /* Important for flex shrinking */
+            white-space: nowrap; /* Prevent wrapping */
+            overflow: hidden; /* Hide overflow */
+            text-overflow: ellipsis; /* Show ... for overflow */
+            text-align: left; /* Align text to the left */
         }
         .card-rules-text-box {
             position: absolute; top: 260px; left: 15px; right: 15px; bottom: 50px;
@@ -209,7 +219,7 @@
         const previewName = document.getElementById('previewName');
         const previewManaCost = document.getElementById('previewManaCost');
         const previewArt = document.getElementById('previewArt');
-        const previewType = document.getElementById('previewType');
+        const previewType = document.getElementById('previewType'); // The text span
         const previewRulesText = document.getElementById('previewRulesText'); // Editable Div
         const previewFlavorText = document.getElementById('previewFlavorText');
         const previewPTBox = document.getElementById('previewPTBox');
